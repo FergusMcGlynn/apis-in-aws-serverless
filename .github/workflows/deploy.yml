@@ -1,0 +1,27 @@
+on: push
+jobs:
+  deploy_aws_infrastructure:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Check out the source code
+        uses: actions/checkout@v2
+
+      - name: Install node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+
+      - name: Install Serverless
+        run: npm install -g serverless
+
+      - name: Install lambda npm dependencies
+        run: npm install
+
+      - name: Deploy Serverless project
+        run: serverless deploy
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: eu-west-1
