@@ -58,15 +58,15 @@ provider:
 #    - exclude-me-dir/**
 
 functions:
-  hello:
+  fetchData:
     handler: fetchDataLambda.handler
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
-    events:
-      - http:
-          path: courses
-          method: get
+#    events:
+#      - http:
+#          path: courses
+#          method: get
 #      - websocket: $connect
 #      - s3: ${env:BUCKET}
 #      - schedule: rate(10 minutes)
@@ -101,6 +101,47 @@ functions:
 #      variable2: value2
 
 # you can add CloudFormation resource templates here
+resources:
+  Resources:
+
+    # The following would be done magically by Serverless if we were defining
+    # the API in the "normal" way, i.e., associating endpoints with functions
+    # in the "functions" section above. However, because we're using an
+    # OpenAPI specification to define our API, we lose the Serverless magic,
+    # and have to define a number of things ourselves in Cloudformation
+
+    # Create the API based on the OpenAPI specification
+    ApiGatewayRestApi:
+      Type: 'AWS::ApiGateway::RestApi'
+      Properties:
+        Body:
+          ${file(./openApiSpecification.yml)}
+
+    # Deploy the API
+    ApiGatewayDeployment:
+      Type: AWS::ApiGateway::Deployment
+      Properties:
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        StageName: ${self:provider.stage}
+
+    # Grant permission for the API to call the lambda - note that lambda name "fetchData"
+    # earlier in this file becomes "FetchDataLambdaFunction" in Cloudformation
+    Permission:
+      Type: AWS::Lambda::Permission
+      Properties:
+        FunctionName:
+          Fn::GetAtt:
+            - FetchDataLambdaFunction
+            - Arn
+        Action: lambda:InvokeFunction
+        Principal: apigateway.amazonaws.com
+
+  Outputs:
+    ApiUrl:
+      Description: "API URL"
+      Value: !Join ['', [ "https://", Ref: ApiGatewayRestApi, ".execute-api.", Ref: AWS::Region, ".amazonaws.com/${self:provider.stage}/" ]]
+
 #resources:
 #  Resources:
 #    NewResource:

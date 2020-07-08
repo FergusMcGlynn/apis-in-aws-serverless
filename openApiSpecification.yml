@@ -1,0 +1,40 @@
+openapi: 3.0.0
+info:
+  title: Courses API
+  version: 0.0.1
+components:
+  schemas:
+    Course:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        department:
+          type: string
+paths:
+  /courses:
+    get:
+      summary: Returns a list of courses.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Course'
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Join:
+            - ''
+            - - 'arn:aws:apigateway:'
+              - Ref: AWS::Region
+              - ':lambda:path/2015-03-31/functions/'
+              - Fn::GetAtt: ["FetchDataLambdaFunction", "Arn"]
+              - '/invocations'
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        type: "aws_proxy"
