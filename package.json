@@ -1,7 +1,10 @@
 {
-  "name": "serverless",
+  "name": "serverless-demo",
   "version": "1.0.0",
   "dependencies": {
     "node-fetch": "latest"
+  },
+  "devDependencies": {
+    "serverless": "^2.8.0"
   }
 }
